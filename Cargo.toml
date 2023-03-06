@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 array2d = "0.3.0"
+extend = "1.1.2"
