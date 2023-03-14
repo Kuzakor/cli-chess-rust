@@ -66,23 +66,39 @@ impl piece {
                     });
                 }
             }
+            'N' => {
+                let a = [-1,2,1,2,2,1,2,-1,1,-2,-1,-2,-2,-1,-2,1];
+                for i in (0..a.len()).step_by(2) {
+                    moves.push(loc {
+                        x: self.loc.x + a[i],
+                        y: self.loc.y + a[i + 1],
+                    });
+                }
+            } 
+            'P' => {
+                
+            }
             _ => todo!(),
         }
         moves
     }
     //Funcion creating * in all possible places piece can move
-    pub fn filter_and_highlight_moves(self, moves: Vec<loc>, layout: &mut board) {
+    pub fn filter_and_highlight_moves(self, moves: Vec<loc>, mut layout: board) -> board {
         let mut moves = moves;
         //Removes invalid moves that are outside the board
-        for i in 0..moves.len(){
+        let mut comeback = 0;
+        for mut i in 0..moves.len(){
+            i = i - comeback;
             if moves[i].x < 0 || moves[i].y < 0 || moves[i].x > 7 || moves[i].y > 7{
                 moves.remove(i);
+                comeback += 1;
             }
         }
-        //Need to add old highlite removal
+
         //Inserts * on all posible moves
         for i in moves {
             layout.insert_piece(i, '*');
         }
+        layout
     }
 }
