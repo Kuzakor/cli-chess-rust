@@ -12,15 +12,15 @@ fn main() {
     let mut horse = board::Piece { 
         piece: 'N',
         loc: board::Loc {
-            x: 1,
-            y: 1,
+            x: 5,
+            y: 5,
         },
     };
     let mut rook = board::Piece { 
         piece: 'R',
         loc: board::Loc {
             x: 2,
-            y: 2,
+            y: 4,
         },
     };
     board.insert_piece(horse.loc, horse.piece);
@@ -52,7 +52,6 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
     println!("You have chosen {} on location {:?}", piece.piece, piece.loc);
     println!("Highlithing possible moves: ");
     let possible_moves = piece.filter_moves(piece.get_possible_moves(), board);
-    println!("{:?}", possible_moves);
     let board_2 = piece.highlight_moves(possible_moves, board);
     nice_print(board_2);
     loop {

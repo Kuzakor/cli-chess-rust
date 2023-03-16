@@ -1,4 +1,4 @@
-
+use std::{cmp::Ordering};
 
 //New struct - loc
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -179,31 +179,80 @@ impl Piece {
 
     pub fn filter_moves(self, moves: Vec<Loc>, mut layout: Board) -> Vec<Loc>{
         let mut moves = moves;
-        let mut block:[Option<i32>; 2] = [None,None];
+        #[derive(PartialEq, Debug)]
+        enum Sign {
+            Plus,
+            Minus,
+            Zero,
+        }
         //Removes invalid moves that are outside the board
         let mut comeback = 0;
+        let mut is_block_initialized = false;
+        let mut block = (0,0);
         for mut i in 0..moves.len(){
             i = i - comeback;
-
+            
             if moves[i].x < 0 || moves[i].y < 0 || moves[i].x > 7 || moves[i].y > 7 {
                 moves.remove(i);
                 comeback += 1;
                 continue;
             } 
-            if  ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) >= 0) && (block[0] >= Some(0) && block[1] >= Some(0)) ||
+            /*if  ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) >= 0) && (block[0] >= Some(0) && block[1] >= Some(0)) ||
                 ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) <= 0) && (block[0] >= Some(0) && block[1] <= Some(0)) ||
                 ((self.loc.x - moves[i].x) <= 0 && (self.loc.y - moves[i].y) >= 0) && (block[0] <= Some(0) && block[1] >= Some(0)) ||
                 ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) <= 0) && (block[0] >= Some(0) && block[1] <= Some(0))  {
                 moves.remove(i);
                 comeback += 1;
                 continue;
+            }*/
+           
+            //println!("{:?}", block);
+            if is_block_initialized {
+                let x_sign = {
+                    match (self.loc.x - moves[i].x).cmp(&0) {
+                        Ordering::Less => Sign::Minus,
+                        Ordering::Equal => Sign::Zero,
+                        Ordering::Greater => Sign::Plus
+                    }
+                };
+                let y_sign = {
+                    match (self.loc.y - moves[i].y).cmp(&0) {
+                        Ordering::Less => Sign::Minus,
+                        Ordering::Equal => Sign::Zero,
+                        Ordering::Greater => Sign::Plus
+                    }
+                };
+                let x_sign_block = {
+                    match block.0.cmp(&0) {
+                        Ordering::Less => Sign::Minus,
+                        Ordering::Equal => Sign::Zero,
+                        Ordering::Greater => Sign::Plus
+                    }
+                };
+                let y_sign_block = {
+                    match block.1.cmp(&0) {
+                        Ordering::Less => Sign::Minus,
+                        Ordering::Equal => Sign::Zero,
+                        Ordering::Greater => Sign::Plus
+                    }
+                };
+                println!("{:?}, {:?}, {:?}, {:?}", x_sign, y_sign, x_sign_block, y_sign_block);
+                if x_sign == x_sign_block && y_sign == y_sign_block {
+                    moves.remove(i);
+                    comeback += 1;
+                    continue;
+                }
             }
+            
+
+                    
 
             //Removes possibility to kick own pieces
             let place = layout.layout[moves[i].x as usize][moves[i].y as usize];
             if place != ' ' {
-              block[0] = Some(self.loc.x - moves[i].x);
-                block[1] = Some(self.loc.y - moves[i].y);
+                block.0 = self.loc.x - moves[i].x;
+                block.1 = self.loc.y - moves[i].y;
+                is_block_initialized = true;
                 if (place.is_ascii_lowercase() && self.piece.is_ascii_lowercase()) || (place.is_ascii_uppercase() && self.piece.is_ascii_uppercase()){
                     moves.remove(i);
                     comeback += 1;
@@ -219,7 +268,6 @@ impl Piece {
     //Funcion creating * in all possible places piece can move
     pub fn highlight_moves(self, moves: Vec<Loc>, mut layout: Board) -> Board {
         
-        println!("{:?}", moves);
         //Inserts * on all posible moves
         for i in moves {
             layout.insert_piece(i, '*');
