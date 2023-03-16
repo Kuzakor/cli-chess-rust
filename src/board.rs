@@ -88,7 +88,7 @@ impl Piece {
                        });
                 }
             }
-            //Pawm moves
+            //Pawn moves
             'p' => {
                 moves.push(Loc {
                     x: self.loc.x + 0,
@@ -101,28 +101,21 @@ impl Piece {
                       });
                }
             }
+            //Bishop moves
             'B' | 'b' => {
                 for i in 1..8 {
-                    moves.push(Loc{
-                        x: self.loc.x + i,
-                        y: self.loc.y + i,
+                    let a = [i, i, -i, -i, i, -i, -i, i];
+                    for b in (0..a.len()).step_by(2){
+                        moves.push(Loc{
+                            x: self.loc.x + a[b],
+                            y: self.loc.y + a[b + 1],
                     });
-                    moves.push(Loc{
-                        x: self.loc.x - i,
-                        y: self.loc.y - i,
-                    });
-                    moves.push(Loc{
-                        x: self.loc.x + i,
-                        y: self.loc.y - i,
-                    });
-                    moves.push(Loc{
-                        x: self.loc.x - i,
-                        y: self.loc.y + i,
-                    });
+                    }
                     
                 }
             }
-            'R' | 'r' => 
+            //Rook moves
+            'R' | 'r' => {
                 for i in 1..8 {
                     moves.push(Loc{
                         x: self.loc.x,
@@ -141,7 +134,9 @@ impl Piece {
                         y: self.loc.y,
                     });
                 }
-            'Q' | 'q' => 
+            }
+            //Queen Moves
+            'Q' | 'q' => {
             for i in 1..8 {
                 moves.push(Loc{
                     x: self.loc.x,
@@ -176,23 +171,55 @@ impl Piece {
                     y: self.loc.y + i,
                 });
             }
+        }
             _ => todo!(),
         }
         moves
     }
-    //Funcion creating * in all possible places piece can move
-    pub fn filter_and_highlight_moves(self, moves: Vec<Loc>, mut layout: Board) -> Board {
+
+    pub fn filter_moves(self, moves: Vec<Loc>, mut layout: Board) -> Vec<Loc>{
         let mut moves = moves;
+        let mut block:[Option<i32>; 2] = [None,None];
         //Removes invalid moves that are outside the board
         let mut comeback = 0;
         for mut i in 0..moves.len(){
             i = i - comeback;
+
             if moves[i].x < 0 || moves[i].y < 0 || moves[i].x > 7 || moves[i].y > 7 {
                 moves.remove(i);
                 comeback += 1;
+                continue;
             } 
-        }
+            if  ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) >= 0) && (block[0] >= Some(0) && block[1] >= Some(0)) ||
+                ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) <= 0) && (block[0] >= Some(0) && block[1] <= Some(0)) ||
+                ((self.loc.x - moves[i].x) <= 0 && (self.loc.y - moves[i].y) >= 0) && (block[0] <= Some(0) && block[1] >= Some(0)) ||
+                ((self.loc.x - moves[i].x) >= 0 && (self.loc.y - moves[i].y) <= 0) && (block[0] >= Some(0) && block[1] <= Some(0))  {
+                moves.remove(i);
+                comeback += 1;
+                continue;
+            }
 
+            //Removes possibility to kick own pieces
+            let place = layout.layout[moves[i].x as usize][moves[i].y as usize];
+            if place != ' ' {
+              block[0] = Some(self.loc.x - moves[i].x);
+                block[1] = Some(self.loc.y - moves[i].y);
+                if (place.is_ascii_lowercase() && self.piece.is_ascii_lowercase()) || (place.is_ascii_uppercase() && self.piece.is_ascii_uppercase()){
+                    moves.remove(i);
+                    comeback += 1;
+                    continue;
+                }
+                continue;
+            }
+            
+        }
+        
+        moves
+    }
+    //Funcion creating * in all possible places piece can move
+    pub fn highlight_moves(self, moves: Vec<Loc>, mut layout: Board) -> Board {
+        
+        println!("{:?}", moves);
         //Inserts * on all posible moves
         for i in moves {
             layout.insert_piece(i, '*');
