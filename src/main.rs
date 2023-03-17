@@ -3,17 +3,17 @@ use std::io;
 fn main() {
     let mut board = board::Board { layout: [[' ';8];8]};
     let mut queen = board::Piece { 
-        piece: 'Q',
+        piece: 'P',
         loc: board::Loc {
-            x: 4,
-            y: 6,
+            x: 1,
+            y: 1,
         },
     };
     let mut horse = board::Piece { 
-        piece: 'N',
+        piece: 'n',
         loc: board::Loc {
-            x: 5,
-            y: 5,
+            x: 2,
+            y: 0,
         },
     };
     let mut rook = board::Piece { 
@@ -51,11 +51,13 @@ fn get_int() -> i32 {
 fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board {
     println!("You have chosen {} on location {:?}", piece.piece, piece.loc);
     println!("Highlithing possible moves: ");
-    let possible_moves = piece.filter_moves(piece.get_possible_moves(), board);
+    let unfiltered_moves = piece.get_possible_moves();
+    let possible_moves = piece.filter_moves(unfiltered_moves, board);
     let board_2 = piece.highlight_moves(possible_moves, board);
     nice_print(board_2);
     loop {
-        let possible_moves = piece.filter_moves(piece.get_possible_moves(), board);
+        let unfiltered_moves = piece.get_possible_moves();
+        let possible_moves = piece.filter_moves(unfiltered_moves, board);
         let loc = board::Loc {
             //Here what you normally expect to by x is y because its 2d array not a map nor other stuff
             x: {
