@@ -10,16 +10,12 @@ pub struct Loc {
 #[derive(Copy, Clone, Debug)]
 pub struct Board {
     pub layout: [[char; 8]; 8],
-    pub is_check_lowercase: Option<Piece>,
-    pub is_check_uppercase: Option<Piece>,
 }
 
 impl Board {
     pub fn new(layout: [[char; 8]; 8]) -> Self{
         Board {
             layout,
-            is_check_lowercase: Default::default(),
-            is_check_uppercase: Default::default()
         }
     }
     //Function insering a char in desired location
@@ -29,6 +25,63 @@ impl Board {
     //Function insering a ' ' in desired location
     pub fn remove_piece(&mut self, loc: Loc) {
         self.layout[loc.x as usize][loc.y as usize] = ' ';
+    }
+    //Funtions checking for king check
+    pub fn is_check__of_uppercase(self) -> bool{
+        //Gets localization of uppercae King.
+        let loc = get_piece_loc_from_char(self, 'K');
+        match loc {
+            Some(x) => {
+                /* Puts every possible type of piece in the place of king on testing board
+                if there is the same type of piece but the oponent's in possible moves of putted piece
+                ,it means that there is a check. */
+                let pieces = ['Q', 'P', 'R', 'N', 'B'];
+                for mut i in pieces {
+                    let piece = Piece::new(i, x);
+                    let mut test_layout = self.clone();
+                    test_layout.insert_piece(x, i);
+                    //println!("{:?}", test_layout);
+                    let possible_moves = piece.filter_moves(piece.get_possible_moves(), test_layout);
+                    i.make_ascii_lowercase();
+                    let a = get_piece_loc_from_char(self, i);
+                    match a {
+                        Some(y) => return possible_moves.contains(&y),
+                        None => continue,
+                    }
+                    
+                }
+                false
+
+            }
+            None => false,
+        }
+        
+    //Same for lowercase
+    }
+        pub fn is_check__of_lowercase(self) -> bool{
+        let loc = get_piece_loc_from_char(self, 'K');
+        match loc {
+            Some(x) => {
+                let pieces = ['q', 'p', 'r', 'n', 'b'];
+                for mut i in pieces {
+                    let piece = Piece::new(i, x);
+                    let mut test_layout = self.clone();
+                    test_layout.insert_piece(x, i);
+                    //println!("{:?}", test_layout);
+                    let possible_moves = piece.filter_moves(piece.get_possible_moves(), test_layout);
+                    i.make_ascii_uppercase();
+                    let a = get_piece_loc_from_char(self, i);
+                    match a {
+                        Some(y) => return possible_moves.contains(&y),
+                        None => continue,
+                    }
+                    
+                }
+                false
+
+            }
+            None => false,
+        }
     }
 }
 
@@ -163,10 +216,8 @@ impl Piece {
         moves
     }
 
-    pub fn filter_moves(self, moves: Vec<Loc>, layout: &mut Board) -> Vec<Loc> {
+    pub fn filter_moves(self, moves: Vec<Loc>, layout: Board) -> Vec<Loc> {
         let mut moves = moves;
-        layout.is_check_lowercase = None;
-        layout.is_check_uppercase = None;
         //Removes invalid moves
 
         let mut comeback = 0;
@@ -230,8 +281,6 @@ impl Piece {
 
 
             if place != ' ' {
-                if place == 'k' {layout.is_check_lowercase = Some(self)}
-                if place == 'K' {layout.is_check_uppercase = Some(self)}
                 
                 block.push(self.loc.x - moves[move_index].x);
                 block.push(self.loc.y - moves[move_index].y);
