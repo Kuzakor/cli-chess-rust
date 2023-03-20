@@ -1,7 +1,7 @@
 mod board;
 use std::io;
 fn main() {
-    let mut board = board::Board { layout: [[' ';8];8]};
+    let mut board = board::Board::new([[' ';8];8]);
     let mut uppercase_pieces: Vec<board::Piece> = Vec::new();
     for i in 0..8{
         uppercase_pieces.push(board::Piece::new('P', board::Loc { x: 1, y: i }))
@@ -15,6 +15,8 @@ fn main() {
     uppercase_pieces.push(board::Piece::new('B', board::Loc { x: 0, y: 5 }));
     uppercase_pieces.push(board::Piece::new('Q', board::Loc { x: 0, y: 3 }));
     uppercase_pieces.push(board::Piece::new('K', board::Loc { x: 0, y: 4 }));
+
+    uppercase_pieces.push(board::Piece::new('q', board::Loc { x: 4, y: 5 }));
 
     for i in uppercase_pieces.iter(){
         board.insert_piece(i.loc, i.piece);
@@ -66,12 +68,12 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
     println!("You have chosen {} on location {:?}", piece.piece, piece.loc);
     println!("Highlithing possible moves: ");
     let unfiltered_moves = piece.get_possible_moves();
-    let possible_moves = piece.filter_moves(unfiltered_moves, board);
+    let possible_moves = piece.filter_moves(unfiltered_moves, &mut board);
     let board_2 = piece.highlight_moves(possible_moves, board);
     nice_print(board_2);
     loop {
         let unfiltered_moves = piece.get_possible_moves();
-        let possible_moves = piece.filter_moves(unfiltered_moves, board);
+        let possible_moves = piece.filter_moves(unfiltered_moves, &mut board);
         if possible_moves.len() == 0 {
             println!("No legal moves possible");
             break;
@@ -89,6 +91,7 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
         };
         if possible_moves.contains(&loc){
             piece.move_piece(loc, &mut board);
+            piece.filter_moves(piece.get_possible_moves(), &mut board);
             return board;
         }else{
             println!("You have chosen wrong location - try again");

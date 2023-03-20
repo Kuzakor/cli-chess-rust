@@ -10,9 +10,18 @@ pub struct Loc {
 #[derive(Copy, Clone, Debug)]
 pub struct Board {
     pub layout: [[char; 8]; 8],
+    pub is_check_lowercase: Option<Piece>,
+    pub is_check_uppercase: Option<Piece>,
 }
 
 impl Board {
+    pub fn new(layout: [[char; 8]; 8]) -> Self{
+        Board {
+            layout,
+            is_check_lowercase: Default::default(),
+            is_check_uppercase: Default::default()
+        }
+    }
     //Function insering a char in desired location
     pub fn insert_piece(&mut self, loc: Loc, piece: char) {
         self.layout[loc.x as usize][loc.y as usize] = piece;
@@ -24,7 +33,7 @@ impl Board {
 }
 
 //New struct - piece
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Piece {
     pub piece: char,
     pub loc: Loc,
@@ -154,9 +163,10 @@ impl Piece {
         moves
     }
 
-    pub fn filter_moves(self, moves: Vec<Loc>, layout: Board) -> Vec<Loc> {
+    pub fn filter_moves(self, moves: Vec<Loc>, layout: &mut Board) -> Vec<Loc> {
         let mut moves = moves;
-
+        layout.is_check_lowercase = None;
+        layout.is_check_uppercase = None;
         //Removes invalid moves
 
         let mut comeback = 0;
@@ -218,7 +228,11 @@ impl Piece {
             }
             //Removes possibility to kick own pieces
 
+
             if place != ' ' {
+                if place == 'k' {layout.is_check_lowercase = Some(self)}
+                if place == 'K' {layout.is_check_uppercase = Some(self)}
+                
                 block.push(self.loc.x - moves[move_index].x);
                 block.push(self.loc.y - moves[move_index].y);
                 if (place.is_ascii_lowercase() && self.piece.is_ascii_lowercase())
@@ -230,9 +244,14 @@ impl Piece {
                 }
                 continue;
             }
+            }
+            moves
         }
-        moves
-    }
+    
+    
+    
+    
+    
     //Funcion creating * in all possible places piece can move
     pub fn highlight_moves(self, moves: Vec<Loc>, mut layout: Board) -> Board {
         //Inserts * on all posible moves
@@ -259,3 +278,18 @@ fn sign_check(number: i32) -> Sign {
         Ordering::Greater => Sign::Plus,
     }
 }
+
+fn get_piece_loc_from_char(layout: Board, piece:char) -> Option<Loc> {
+    for i in 0..layout.layout.len(){
+        for a in 0..layout.layout[i].len(){
+            if layout.layout[i][a] == piece {
+                return (Some(Loc {
+                    x: i as i32,
+                    y: a as i32,
+                }));
+            }
+        }
+        }
+        None
+    }
+    
