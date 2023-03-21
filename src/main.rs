@@ -104,7 +104,7 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
     loop {
         let unfiltered_moves = piece.get_possible_moves();
         let possible_moves = piece.filter_moves(unfiltered_moves, board);
-        if possible_moves.len() == 0 {
+        if possible_moves.is_empty() {
             println!("No legal moves possible");
             break;
         }
@@ -119,14 +119,16 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
                 get_int()
             },
         };
-        if possible_moves.contains(&loc){
-            piece.move_piece(loc, &mut board);
-
-            return board;
-        }else{
-            println!("You have chosen wrong location - try again");
-            continue;
-      }
+        match possible_moves.contains(&loc) {
+            true => {
+                piece.move_piece(loc, &mut board);
+                return board;
+            }
+            false => {
+                println!("You have chosen wrong location - try again");
+                continue;
+            }
+        }
       
     }
     board

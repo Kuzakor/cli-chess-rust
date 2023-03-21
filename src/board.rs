@@ -36,7 +36,7 @@ impl Board {
                 if there is the same type of piece but the oponent's in possible moves of putted piece
                 ,it means that there is a check. */
                 let pieces = ['Q', 'P', 'R', 'N', 'B'];
-                for mut i in pieces {
+                for i in pieces {
                     let piece = Piece::new(i, x);
                     let mut test_layout = self.clone();
                     test_layout.insert_piece(x, i);
@@ -126,7 +126,6 @@ impl Board {
 pub struct Piece {
     pub piece: char,
     pub loc: Loc,
-
 }
 
 impl Piece {
@@ -389,10 +388,10 @@ fn get_piece_loc_from_char(layout: Board, piece:char) -> Option<Loc> {
     for i in 0..layout.layout.len(){
         for a in 0..layout.layout[i].len(){
             if layout.layout[i][a] == piece {
-                return (Some(Loc {
+                return Some(Loc {
                     x: i as i32,
                     y: a as i32,
-                }));
+                });
             }
         }
         }
