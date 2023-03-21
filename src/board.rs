@@ -27,7 +27,7 @@ impl Board {
         self.layout[loc.x as usize][loc.y as usize] = ' ';
     }
     //Funtions checking for king check
-    pub fn is_check__of_uppercase(self) -> bool{
+    pub fn is_check_of_uppercase(self) -> bool{
         //Gets localization of uppercae King.
         let loc = get_piece_loc_from_char(self, 'K');
         match loc {
@@ -42,10 +42,14 @@ impl Board {
                     test_layout.insert_piece(x, i);
                     //println!("{:?}", test_layout);
                     let possible_moves = piece.filter_moves(piece.get_possible_moves(), test_layout);
-                    i.make_ascii_lowercase();
-                    let a = get_piece_loc_from_char(self, i);
+                    let a = get_piece_loc_from_char(self, i.to_ascii_lowercase());
                     match a {
-                        Some(y) => return possible_moves.contains(&y),
+                        Some(y) => {
+                            match possible_moves.contains(&y) {
+                                true => return true,
+                                false => continue,
+                            }
+                        }
                         None => continue,
                     }
                     
@@ -58,8 +62,8 @@ impl Board {
         
     //Same for lowercase
     }
-        pub fn is_check__of_lowercase(self) -> bool{
-        let loc = get_piece_loc_from_char(self, 'K');
+    pub fn is_check_of_lowercase(self) -> bool{
+        let loc = get_piece_loc_from_char(self, 'k');
         match loc {
             Some(x) => {
                 let pieces = ['q', 'p', 'r', 'n', 'b'];
@@ -67,12 +71,16 @@ impl Board {
                     let piece = Piece::new(i, x);
                     let mut test_layout = self.clone();
                     test_layout.insert_piece(x, i);
-                    //println!("{:?}", test_layout);
                     let possible_moves = piece.filter_moves(piece.get_possible_moves(), test_layout);
                     i.make_ascii_uppercase();
                     let a = get_piece_loc_from_char(self, i);
                     match a {
-                        Some(y) => return possible_moves.contains(&y),
+                        Some(y) => {
+                            match possible_moves.contains(&y) {
+                                true => return true,
+                                false => continue,
+                            }
+                        }
                         None => continue,
                     }
                     
@@ -83,6 +91,34 @@ impl Board {
             None => false,
         }
     }
+    pub fn is_checkmate_of_lowercase(self) -> bool {
+        if self.is_check_of_lowercase() {
+            let loc = get_piece_loc_from_char(self, 'k');
+            match loc {
+                Some(x) => {
+                    let test_piece = Piece::new('k', x);
+                    let possible_moves = test_piece.filter_moves(test_piece.get_possible_moves(), self);
+                    return possible_moves.len() == 0;
+                }
+                None => return false,
+            }
+        }
+        false
+    }
+    pub fn is_checkmate_of_uppercase(self) -> bool {
+        if self.is_check_of_uppercase() {
+            let loc = get_piece_loc_from_char(self, 'K');
+            match loc {
+                Some(x) => {
+                    let test_piece = Piece::new('K', x);
+                    let possible_moves = test_piece.filter_moves(test_piece.get_possible_moves(), self);
+                    return possible_moves.len() == 0;
+                }
+                None => return false,
+            }
+        }
+        false
+    }
 }
 
 //New struct - piece
@@ -90,6 +126,7 @@ impl Board {
 pub struct Piece {
     pub piece: char,
     pub loc: Loc,
+
 }
 
 impl Piece {
@@ -168,7 +205,7 @@ impl Piece {
                         y: self.loc.y + change[index + 1],
                     })
                 }
-                if self.loc.x == 5 {
+                if self.loc.x == 6 {
                     moves.push(Loc {
                         x: self.loc.x - 2,
                         y: self.loc.y,
@@ -291,7 +328,27 @@ impl Piece {
                     comeback += 1;
                     continue;
                 }
-                continue;
+            }
+            if self.piece.is_ascii_lowercase() && layout.is_check_of_lowercase() {
+                let mut test_board = layout.clone();
+                let mut test_piece = self.clone();
+                test_piece.move_piece(moves[move_index], &mut test_board);
+                if test_board.is_check_of_lowercase() {
+                    moves.remove(move_index);
+                    comeback += 1;
+                    continue;
+                } 
+            }
+            if self.piece.is_ascii_uppercase() && layout.is_check_of_uppercase(){
+                let mut test_board = layout.clone();
+                let mut test_piece = self.clone();
+                test_piece.move_piece(moves[move_index], &mut test_board);
+                
+                if test_board.is_check_of_uppercase() {
+                    moves.remove(move_index);
+                    comeback += 1;
+                    continue;
+                } 
             }
             }
             moves
