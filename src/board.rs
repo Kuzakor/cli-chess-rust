@@ -13,10 +13,8 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(layout: [[char; 8]; 8]) -> Self{
-        Board {
-            layout,
-        }
+    pub fn new(layout: [[char; 8]; 8]) -> Self {
+        Board { layout }
     }
     //Function insering a char in desired location
     pub fn insert_piece(&mut self, loc: Loc, piece: char) {
@@ -27,7 +25,7 @@ impl Board {
         self.layout[loc.x as usize][loc.y as usize] = ' ';
     }
     //Funtions checking for king check
-    pub fn is_check_of_uppercase(self) -> bool{
+    pub fn is_check_of_uppercase(self) -> bool {
         //Gets localization of uppercae King.
         let loc = get_piece_loc_from_char(self, 'K');
         match loc {
@@ -38,86 +36,52 @@ impl Board {
                 let pieces = ['Q', 'P', 'R', 'N', 'B'];
                 for i in pieces {
                     let piece = Piece::new(i, x);
-                    let mut test_layout = self.clone();
+                    let mut test_layout = self;
                     test_layout.insert_piece(x, i);
                     //println!("{:?}", test_layout);
-                    let possible_moves = piece.filter_moves(piece.get_possible_moves(), test_layout);
+                    let possible_moves =
+                        piece.filter_moves(piece.get_possible_moves(), test_layout);
                     let a = get_piece_loc_from_char(self, i.to_ascii_lowercase());
                     match a {
-                        Some(y) => {
-                            match possible_moves.contains(&y) {
-                                true => return true,
-                                false => continue,
-                            }
-                        }
+                        Some(y) => match possible_moves.contains(&y) {
+                            true => return true,
+                            false => continue,
+                        },
                         None => continue,
                     }
-                    
                 }
                 false
-
             }
             None => false,
         }
-        
-    //Same for lowercase
+
+        //Same for lowercase
     }
-    pub fn is_check_of_lowercase(self) -> bool{
+    pub fn is_check_of_lowercase(self) -> bool {
         let loc = get_piece_loc_from_char(self, 'k');
         match loc {
             Some(x) => {
                 let pieces = ['q', 'p', 'r', 'n', 'b'];
                 for mut i in pieces {
                     let piece = Piece::new(i, x);
-                    let mut test_layout = self.clone();
+                    let mut test_layout = self;
                     test_layout.insert_piece(x, i);
-                    let possible_moves = piece.filter_moves(piece.get_possible_moves(), test_layout);
+                    let possible_moves =
+                        piece.filter_moves(piece.get_possible_moves(), test_layout);
                     i.make_ascii_uppercase();
                     let a = get_piece_loc_from_char(self, i);
                     match a {
-                        Some(y) => {
-                            match possible_moves.contains(&y) {
-                                true => return true,
-                                false => continue,
-                            }
-                        }
+                        Some(y) => match possible_moves.contains(&y) {
+                            true => return true,
+                            false => continue,
+                        },
                         None => continue,
                     }
-                    
                 }
                 false
-
             }
             None => false,
         }
-    }
-    pub fn is_checkmate_of_lowercase(self) -> bool {
-        if self.is_check_of_lowercase() {
-            let loc = get_piece_loc_from_char(self, 'k');
-            match loc {
-                Some(x) => {
-                    let test_piece = Piece::new('k', x);
-                    let possible_moves = test_piece.filter_moves(test_piece.get_possible_moves(), self);
-                    return possible_moves.len() == 0;
-                }
-                None => return false,
-            }
-        }
-        false
-    }
-    pub fn is_checkmate_of_uppercase(self) -> bool {
-        if self.is_check_of_uppercase() {
-            let loc = get_piece_loc_from_char(self, 'K');
-            match loc {
-                Some(x) => {
-                    let test_piece = Piece::new('K', x);
-                    let possible_moves = test_piece.filter_moves(test_piece.get_possible_moves(), self);
-                    return possible_moves.len() == 0;
-                }
-                None => return false,
-            }
-        }
-        false
     }
 }
 
@@ -130,10 +94,7 @@ pub struct Piece {
 
 impl Piece {
     pub fn new(piece: char, loc: Loc) -> Self {
-        Piece {
-            piece,
-            loc,
-        }
+        Piece { piece, loc }
     }
     //Funtion removing current piece and adding a new one in desired location, so basically moving a piece.
     pub fn move_piece(&mut self, loc: Loc, layout: &mut Board) {
@@ -237,15 +198,15 @@ impl Piece {
             }
             //Queen Moves
             'Q' | 'q' => {
-                    for i in 1..64 {
-                        let change = [i, i, -i, -i, i, -i, -i, i, 0, i, i, 0, 0, -i, -i, 0];
-                        for index in (0..change.len()).step_by(2) {
-                            moves.push(Loc {
-                                x: self.loc.x + change[index],
-                                y: self.loc.y + change[index + 1],
-                            });
-                        }
+                for i in 1..64 {
+                    let change = [i, i, -i, -i, i, -i, -i, i, 0, i, i, 0, 0, -i, -i, 0];
+                    for index in (0..change.len()).step_by(2) {
+                        moves.push(Loc {
+                            x: self.loc.x + change[index],
+                            y: self.loc.y + change[index + 1],
+                        });
                     }
+                }
             }
             _ => todo!(),
         }
@@ -263,7 +224,7 @@ impl Piece {
             let mut need_contunue = false;
             move_index -= comeback;
 
-            //Moves that are outside the board
+            //Removes moves that are outside the board
 
             if moves[move_index].x < 0
                 || moves[move_index].y < 0
@@ -275,7 +236,6 @@ impl Piece {
                 continue;
             }
 
-            
             if self.piece != 'N' && self.piece != 'n' {
                 /*
                 Cheks sign of self.loc - moves[i] and the same for blocking piece.
@@ -301,23 +261,21 @@ impl Piece {
                     continue;
                 }
             }
-            
 
             //If piece is pawn removes moving by axis if there is no piece
             let place = layout.layout[moves[move_index].x as usize][moves[move_index].y as usize];
 
-            if (self.piece == 'P' || self.piece == 'p') && (moves[move_index].y != self.loc.y) {
-                if place == ' ' {
-                    moves.remove(move_index);
-                    comeback += 1;
-                    continue;
-                }
+            if (self.piece == 'P' || self.piece == 'p')
+                && (moves[move_index].y != self.loc.y)
+                && place == ' '
+            {
+                moves.remove(move_index);
+                comeback += 1;
+                continue;
             }
             //Removes possibility to kick own pieces
 
-
             if place != ' ' {
-                
                 block.push(self.loc.x - moves[move_index].x);
                 block.push(self.loc.y - moves[move_index].y);
                 if (place.is_ascii_lowercase() && self.piece.is_ascii_lowercase())
@@ -328,35 +286,34 @@ impl Piece {
                     continue;
                 }
             }
+            /*Prevents possibity to move when its check, can move to prevent check though
+            Creates test piece the same as the selected piece and test board, checks if move is blocking current
+            by moving the test piece to the location that is being currnetly being checked. When there is still check, removes the move            */
             if self.piece.is_ascii_lowercase() && layout.is_check_of_lowercase() {
-                let mut test_board = layout.clone();
-                let mut test_piece = self.clone();
+                let mut test_board = layout;
+                let mut test_piece = self;
                 test_piece.move_piece(moves[move_index], &mut test_board);
                 if test_board.is_check_of_lowercase() {
                     moves.remove(move_index);
                     comeback += 1;
                     continue;
-                } 
+                }
             }
-            if self.piece.is_ascii_uppercase() && layout.is_check_of_uppercase(){
-                let mut test_board = layout.clone();
-                let mut test_piece = self.clone();
+            if self.piece.is_ascii_uppercase() && layout.is_check_of_uppercase() {
+                let mut test_board = layout;
+                let mut test_piece = self;
                 test_piece.move_piece(moves[move_index], &mut test_board);
-                
+
                 if test_board.is_check_of_uppercase() {
                     moves.remove(move_index);
                     comeback += 1;
                     continue;
-                } 
+                }
             }
-            }
-            moves
         }
-    
-    
-    
-    
-    
+        moves
+    }
+
     //Funcion creating * in all possible places piece can move
     pub fn highlight_moves(self, moves: Vec<Loc>, mut layout: Board) -> Board {
         //Inserts * on all posible moves
@@ -384,17 +341,17 @@ fn sign_check(number: i32) -> Sign {
     }
 }
 
-fn get_piece_loc_from_char(layout: Board, piece:char) -> Option<Loc> {
-    for i in 0..layout.layout.len(){
-        for a in 0..layout.layout[i].len(){
-            if layout.layout[i][a] == piece {
+//Funtion getting piece location based on this char.
+fn get_piece_loc_from_char(layout: Board, piece: char) -> Option<Loc> {
+    for x in 0..layout.layout.len() {
+        for y in 0..layout.layout[x].len() {
+            if layout.layout[x][y] == piece {
                 return Some(Loc {
-                    x: i as i32,
-                    y: a as i32,
+                    x: x as i32,
+                    y: y as i32,
                 });
             }
         }
-        }
-        None
     }
-    
+    None
+}
