@@ -1,5 +1,6 @@
 mod board;
 use std::io;
+
 fn main() {
     //Declaring main board and vec with all the pieces
     let mut board = board::Board::new([[' '; 8]; 8]);
@@ -14,24 +15,27 @@ fn main() {
     pieces.push(board::Piece::new('N', board::Loc { x: 0, y: 6 }));
     pieces.push(board::Piece::new('B', board::Loc { x: 0, y: 2 }));
     pieces.push(board::Piece::new('B', board::Loc { x: 0, y: 5 }));
-    pieces.push(board::Piece::new('Q', board::Loc { x: 0, y: 3 }));
+    //pieces.push(board::Piece::new('Q', board::Loc { x: 6, y: 5 }));
     pieces.push(board::Piece::new('K', board::Loc { x: 0, y: 4 }));
     pieces.push(board::Piece::new('r', board::Loc { x: 7, y: 0 }));
-    pieces.push(board::Piece::new('r', board::Loc { x: 5, y: 5 }));
-    pieces.push(board::Piece::new('n', board::Loc { x: 7, y: 1 }));
+    pieces.push(board::Piece::new('r', board::Loc { x: 7, y: 7 }));
+    /*pieces.push(board::Piece::new('n', board::Loc { x: 7, y: 1 }));
     pieces.push(board::Piece::new('n', board::Loc { x: 7, y: 6 }));
     pieces.push(board::Piece::new('b', board::Loc { x: 7, y: 2 }));
-    pieces.push(board::Piece::new('b', board::Loc { x: 7, y: 5 }));
-    pieces.push(board::Piece::new('q', board::Loc { x: 4, y: 5 }));
+    pieces.push(board::Piece::new('b', board::Loc { x: 7, y: 5 }));*/
+
     pieces.push(board::Piece::new('k', board::Loc { x: 7, y: 4 }));
+    //pieces.push(board::Piece::new('q', board::Loc { x: 1, y: 0 }));
     for i in pieces.iter() {
         board.insert_piece(i.loc, i.piece);
     }
+    let mut lowercase_now = true;
     loop {
         nice_print(board);
 
         //Checks if there is a checkmate for each player by testing if there is a check AND there is no possiblity to move.
         if board.is_check_of_uppercase() {
+            println!("Its check");
             let mut valid_pieces = 0;
             let mut no_moves = 0;
             for i in pieces.clone() {
@@ -51,8 +55,9 @@ fn main() {
                 break;
             }
         }
-
+        //Same for lowercase
         if board.is_check_of_lowercase() {
+            println!("Its check");
             let mut valid_pieces = 0;
             let mut no_moves = 0;
             for i in pieces.clone() {
@@ -72,48 +77,87 @@ fn main() {
                 break;
             }
         }
-
-        println!("Choose piece: ");
-        let loc = board::Loc {
-            //Here what you normally expect to by x is y because its 2d array not a map nor other stuff
-            x: {
-                println!("y: ");
-                get_int()
-            },
-            y: {
-                println!("x: ");
-                get_int()
-            },
-        };
-        let piece_index = get_piece_from_loc(pieces.clone(), loc);
-        match piece_index {
-            Some(x) => {
-                let mut piece = pieces[x];
-                board = user_move(board, &mut piece);
-                let kick_piece = get_piece_from_loc(pieces.clone(), piece.loc);
-                match kick_piece {
-                    Some(y) => {
-                        pieces.remove(y);
-                        pieces.push(piece);
+        println!("Any special move?, 1 for long castle, 2 for short castle, other number for normal move");
+        let special = get_int();
+        match special {
+            1 => match lowercase_now {
+                true => {
+                    if board.long_castle_lowercase(&mut pieces) {
+                        lowercase_now = !lowercase_now;
                     }
-                    None => pieces.push(piece),
+                    continue;
                 }
+                false => {
+                    if board.long_castle_uppercase(&mut pieces) {
+                        lowercase_now = !lowercase_now;
+                    }
+                    continue;
+                }
+            },
+            2 => match lowercase_now {
+                true => {
+                    if board.short_castle_lowercase(&mut pieces) {
+                        lowercase_now = !lowercase_now;
+                    }
+                    continue;
+                }
+                false => {
+                    if board.short_castle_uppercase(&mut pieces) {
+                        lowercase_now = !lowercase_now;
+                    }
+                    continue;
+                }
+            },
+            _ => {
+                println!("Choose piece: ");
+                let loc = board::Loc {
+                    //Here what you normally expect to by x is y because its 2d array not a map nor other stuff
+                    x: {
+                        println!("row: ");
+                        get_int()
+                    },
+                    y: {
+                        println!("collumn: ");
+                        get_int()
+                    },
+                };
+                let piece_index = board::get_piece_from_loc(pieces.clone(), loc);
+                match piece_index {
+                    Some(x) => {
+                        let mut piece = pieces[x];
+                        match piece.piece.is_ascii_lowercase() && lowercase_now
+                            || piece.piece.is_ascii_uppercase() && !lowercase_now
+                        {
+                            true => {
+                                board = user_move(board, &mut piece);
+                                let kick_piece =
+                                    board::get_piece_from_loc(pieces.clone(), piece.loc);
+                                match kick_piece {
+                                    Some(y) => {
+                                        pieces.remove(y);
+                                        pieces.push(piece);
+                                    }
+                                    None => pieces.push(piece),
+                                }
+                                lowercase_now = !lowercase_now;
+                            }
+                            false => println!("Not your piece"),
+                        }
+                    }
+                    None => {
+                        println!("No piece there");
+                        continue;
+                    }
+                };
             }
-            None => {
-                println!("No piece there");
-                continue;
-            }
-        };
+        }
     }
     //loop {
     //board = user_move(board, &mut queen);
     //nice_print(board);
     //}
 }
-//Returns piece index in pieces vector based on its location.
-fn get_piece_from_loc(pieces_vec: Vec<board::Piece>, loc: board::Loc) -> Option<usize> {
-    (0..pieces_vec.len()).find(|&i| pieces_vec[i].loc == loc)
-}
+
 //User move
 fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board {
     println!(
@@ -123,7 +167,9 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
     println!("Highlithing possible moves: ");
     let unfiltered_moves = piece.get_possible_moves();
     let possible_moves = piece.filter_moves(unfiltered_moves, board);
+
     let board_2 = piece.highlight_moves(possible_moves, board);
+
     nice_print(board_2);
 
     loop {
@@ -136,11 +182,11 @@ fn user_move(mut board: board::Board, piece: &mut board::Piece) -> board::Board 
         let loc = board::Loc {
             //Here what you normally expect to by x is y because its 2d array not a map nor other stuff
             x: {
-                println!("Select your move(y): ");
+                println!("Select your move(row): ");
                 get_int()
             },
             y: {
-                println!("Select your move(x): ");
+                println!("Select your move(collumn): ");
                 get_int()
             },
         };

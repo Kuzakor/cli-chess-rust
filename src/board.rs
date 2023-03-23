@@ -24,6 +24,191 @@ impl Board {
     pub fn remove_piece(&mut self, loc: Loc) {
         self.layout[loc.x as usize][loc.y as usize] = ' ';
     }
+
+    pub fn short_castle_uppercase(&mut self, pieces: &mut [Piece]) -> bool {
+        if self.layout[0][4] == 'K'
+            && self.layout[0][7] == 'R'
+            && self.layout[0][5] == ' '
+            && self.layout[0][6] == ' '
+        {
+            let test = {
+                let mut test_board = *self;
+                test_board.remove_piece(Loc { x: 0, y: 4 });
+                test_board.insert_piece(Loc { x: 0, y: 5 }, 'K');
+                match test_board.is_check_of_uppercase() {
+                    true => false,
+                    false => {
+                        test_board.remove_piece(Loc { x: 0, y: 5 });
+                        test_board.insert_piece(Loc { x: 0, y: 6 }, 'K');
+                        match test_board.is_check_of_uppercase() {
+                            true => false,
+                            false => true,
+                        }
+                    }
+                }
+            };
+            if test {
+                let piece = get_piece_from_loc(pieces.to_owned(), Loc { x: 0, y: 4 });
+                let piece_2 = get_piece_from_loc(pieces.to_owned(), Loc { x: 0, y: 7 });
+                match piece {
+                    Some(x) => match piece_2 {
+                        Some(y) => {
+                            if !pieces[x].has_moved && !pieces[y].has_moved {
+                                pieces[x].move_piece(Loc { x: 0, y: 6 }, self);
+                                pieces[y].move_piece(Loc { x: 0, y: 5 }, self);
+                            }
+                        }
+                        None => println!("error"),
+                    },
+                    None => println!("error"),
+                }
+            }
+        }
+        false
+    }
+    pub fn long_castle_uppercase(&mut self, pieces: &mut [Piece]) -> bool {
+        if self.layout[0][4] == 'K'
+            && self.layout[0][0] == 'R'
+            && self.layout[0][3] == ' '
+            && self.layout[0][2] == ' '
+            && self.layout[0][1] == ' '
+        {
+            let test = {
+                let mut test_board = *self;
+                test_board.remove_piece(Loc { x: 0, y: 4 });
+                test_board.insert_piece(Loc { x: 0, y: 3 }, 'K');
+                match test_board.is_check_of_uppercase() {
+                    true => false,
+                    false => {
+                        test_board.remove_piece(Loc { x: 0, y: 3 });
+                        test_board.insert_piece(Loc { x: 0, y: 2 }, 'K');
+                        match test_board.is_check_of_uppercase() {
+                            true => false,
+                            false => {
+                                test_board.remove_piece(Loc { x: 0, y: 2 });
+                                test_board.insert_piece(Loc { x: 0, y: 1 }, 'K');
+                                match test_board.is_check_of_uppercase() {
+                                    true => false,
+                                    false => true,
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            if test {
+                let piece = get_piece_from_loc(pieces.to_owned(), Loc { x: 0, y: 4 });
+                let piece_2 = get_piece_from_loc(pieces.to_owned(), Loc { x: 0, y: 0 });
+                match piece {
+                    Some(x) => match piece_2 {
+                        Some(y) => {
+                            if !pieces[x].has_moved && !pieces[y].has_moved {
+                                pieces[x].move_piece(Loc { x: 0, y: 2 }, self);
+                                pieces[y].move_piece(Loc { x: 0, y: 3 }, self);
+                            }
+                        }
+                        None => println!("error"),
+                    },
+                    None => println!("error"),
+                }
+            }
+        }
+        false
+    }
+
+    pub fn short_castle_lowercase(&mut self, pieces: &mut [Piece]) -> bool {
+        if self.layout[7][4] == 'k'
+            && self.layout[7][7] == 'r'
+            && self.layout[7][5] == ' '
+            && self.layout[7][6] == ' '
+        {
+            let test = {
+                let mut test_board = *self;
+                test_board.remove_piece(Loc { x: 7, y: 4 });
+                test_board.insert_piece(Loc { x: 7, y: 5 }, 'k');
+                match test_board.is_check_of_lowercase() {
+                    true => false,
+                    false => {
+                        test_board.remove_piece(Loc { x: 7, y: 5 });
+                        test_board.insert_piece(Loc { x: 7, y: 6 }, 'k');
+                        match test_board.is_check_of_lowercase() {
+                            true => false,
+                            false => true,
+                        }
+                    }
+                }
+            };
+
+            if test {
+                let piece = get_piece_from_loc(pieces.to_owned(), Loc { x: 7, y: 4 });
+                let piece_2 = get_piece_from_loc(pieces.to_owned(), Loc { x: 7, y: 7 });
+                match piece {
+                    Some(x) => match piece_2 {
+                        Some(y) => {
+                            if !pieces[x].has_moved && !pieces[y].has_moved {
+                                pieces[x].move_piece(Loc { x: 7, y: 6 }, self);
+                                pieces[y].move_piece(Loc { x: 7, y: 5 }, self);
+                            }
+                        }
+                        None => println!("error"),
+                    },
+                    None => println!("error"),
+                }
+            }
+        }
+        false
+    }
+    pub fn long_castle_lowercase(&mut self, pieces: &mut [Piece]) -> bool {
+        if self.layout[7][4] == 'k'
+            && self.layout[7][0] == 'r'
+            && self.layout[7][3] == ' '
+            && self.layout[7][2] == ' '
+            && self.layout[7][1] == ' '
+        {
+            let test = {
+                let mut test_board = *self;
+                test_board.remove_piece(Loc { x: 7, y: 4 });
+                test_board.insert_piece(Loc { x: 7, y: 3 }, 'k');
+                match test_board.is_check_of_lowercase() {
+                    true => false,
+                    false => {
+                        test_board.remove_piece(Loc { x: 7, y: 3 });
+                        test_board.insert_piece(Loc { x: 7, y: 2 }, 'k');
+                        match test_board.is_check_of_lowercase() {
+                            true => false,
+                            false => {
+                                test_board.remove_piece(Loc { x: 7, y: 2 });
+                                test_board.insert_piece(Loc { x: 7, y: 1 }, 'k');
+                                match test_board.is_check_of_lowercase() {
+                                    true => false,
+                                    false => true,
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            if test {
+                let piece = get_piece_from_loc(pieces.to_owned(), Loc { x: 7, y: 4 });
+                let piece_2 = get_piece_from_loc(pieces.to_owned(), Loc { x: 7, y: 0 });
+                match piece {
+                    Some(x) => match piece_2 {
+                        Some(y) => {
+                            if !pieces[x].has_moved && !pieces[y].has_moved {
+                                pieces[x].move_piece(Loc { x: 7, y: 2 }, self);
+                                pieces[y].move_piece(Loc { x: 7, y: 3 }, self);
+                            }
+                        }
+                        None => println!("error"),
+                    },
+                    None => println!("error"),
+                }
+            }
+        }
+        false
+    }
+
     //Funtions checking for king check
     pub fn is_check_of_uppercase(self) -> bool {
         //Gets localization of uppercae King.
@@ -90,11 +275,16 @@ impl Board {
 pub struct Piece {
     pub piece: char,
     pub loc: Loc,
+    pub has_moved: bool,
 }
 
 impl Piece {
     pub fn new(piece: char, loc: Loc) -> Self {
-        Piece { piece, loc }
+        Piece {
+            piece,
+            loc,
+            has_moved: false,
+        }
     }
     //Funtion removing current piece and adding a new one in desired location, so basically moving a piece.
     pub fn move_piece(&mut self, loc: Loc, layout: &mut Board) {
@@ -106,6 +296,7 @@ impl Piece {
         //changing piece loc to new one
         self.loc.x = loc.x;
         self.loc.y = loc.y;
+        self.has_moved = true;
     }
     //Function getting all posible moves including invalid ones
     pub fn get_possible_moves(self) -> Vec<Loc> {
@@ -262,16 +453,23 @@ impl Piece {
                 }
             }
 
-            //If piece is pawn removes moving by axis if there is no piece
             let place = layout.layout[moves[move_index].x as usize][moves[move_index].y as usize];
 
-            if (self.piece == 'P' || self.piece == 'p')
-                && (moves[move_index].y != self.loc.y)
-                && place == ' '
-            {
-                moves.remove(move_index);
-                comeback += 1;
-                continue;
+            if self.piece == 'P' || self.piece == 'p' {
+                //If piece is pawn removes kckng place forward
+                if (moves[move_index].y == self.loc.y && moves[move_index].x != self.loc.x)
+                    && place != ' '
+                {
+                    moves.remove(move_index);
+                    comeback += 1;
+                    continue;
+                }
+                //If piece is pawn removes moving by axis if there is no piece
+                if (moves[move_index].y != self.loc.y) && place == ' ' {
+                    moves.remove(move_index);
+                    comeback += 1;
+                    continue;
+                }
             }
             //Removes possibility to kick own pieces
 
@@ -354,4 +552,9 @@ fn get_piece_loc_from_char(layout: Board, piece: char) -> Option<Loc> {
         }
     }
     None
+}
+
+//Returns piece index in pieces vector based on its location.
+pub fn get_piece_from_loc(pieces_vec: Vec<Piece>, loc: Loc) -> Option<usize> {
+    (0..pieces_vec.len()).find(|&i| pieces_vec[i].loc == loc)
 }
