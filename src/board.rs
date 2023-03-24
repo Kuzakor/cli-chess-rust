@@ -26,11 +26,14 @@ impl Board {
     }
 
     pub fn short_castle_uppercase(&mut self, pieces: &mut [Piece]) -> bool {
+        //Checks if K and R are in correct places and nothing in between and there is no check.
         if self.layout[0][4] == 'K'
             && self.layout[0][7] == 'R'
             && self.layout[0][5] == ' '
             && self.layout[0][6] == ' '
+            && !self.is_check_of_uppercase()
         {
+            //Checks if places in between are attacked
             let test = {
                 let mut test_board = *self;
                 test_board.remove_piece(Loc { x: 0, y: 4 });
@@ -51,21 +54,24 @@ impl Board {
                 let piece = get_piece_from_loc(pieces.to_owned(), Loc { x: 0, y: 4 });
                 let piece_2 = get_piece_from_loc(pieces.to_owned(), Loc { x: 0, y: 7 });
                 match piece {
+                    //Move the pieces if they exist
                     Some(x) => match piece_2 {
                         Some(y) => {
                             if !pieces[x].has_moved && !pieces[y].has_moved {
                                 pieces[x].move_piece(Loc { x: 0, y: 6 }, self);
                                 pieces[y].move_piece(Loc { x: 0, y: 5 }, self);
+                                return true;
                             }
                         }
-                        None => println!("error"),
+                        None => return false,
                     },
-                    None => println!("error"),
+                    None => return false,
                 }
             }
         }
         false
     }
+    //same as above
     pub fn long_castle_uppercase(&mut self, pieces: &mut [Piece]) -> bool {
         if self.layout[0][4] == 'K'
             && self.layout[0][0] == 'R'
@@ -106,17 +112,18 @@ impl Board {
                             if !pieces[x].has_moved && !pieces[y].has_moved {
                                 pieces[x].move_piece(Loc { x: 0, y: 2 }, self);
                                 pieces[y].move_piece(Loc { x: 0, y: 3 }, self);
+                                return true;
                             }
                         }
-                        None => println!("error"),
+                        None => return false,
                     },
-                    None => println!("error"),
+                    None => return false,
                 }
             }
         }
         false
     }
-
+    //same as above
     pub fn short_castle_lowercase(&mut self, pieces: &mut [Piece]) -> bool {
         if self.layout[7][4] == 'k'
             && self.layout[7][7] == 'r'
@@ -149,16 +156,18 @@ impl Board {
                             if !pieces[x].has_moved && !pieces[y].has_moved {
                                 pieces[x].move_piece(Loc { x: 7, y: 6 }, self);
                                 pieces[y].move_piece(Loc { x: 7, y: 5 }, self);
+                                return true;
                             }
                         }
-                        None => println!("error"),
+                        None => return false,
                     },
-                    None => println!("error"),
+                    None => return false,
                 }
             }
         }
         false
     }
+    //same as above
     pub fn long_castle_lowercase(&mut self, pieces: &mut [Piece]) -> bool {
         if self.layout[7][4] == 'k'
             && self.layout[7][0] == 'r'
@@ -198,11 +207,12 @@ impl Board {
                             if !pieces[x].has_moved && !pieces[y].has_moved {
                                 pieces[x].move_piece(Loc { x: 7, y: 2 }, self);
                                 pieces[y].move_piece(Loc { x: 7, y: 3 }, self);
+                                return true;
                             }
                         }
-                        None => println!("error"),
+                        None => return false,
                     },
-                    None => println!("error"),
+                    None => return false,
                 }
             }
         }

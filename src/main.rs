@@ -15,17 +15,17 @@ fn main() {
     pieces.push(board::Piece::new('N', board::Loc { x: 0, y: 6 }));
     pieces.push(board::Piece::new('B', board::Loc { x: 0, y: 2 }));
     pieces.push(board::Piece::new('B', board::Loc { x: 0, y: 5 }));
-    //pieces.push(board::Piece::new('Q', board::Loc { x: 6, y: 5 }));
+    pieces.push(board::Piece::new('Q', board::Loc { x: 0, y: 3 }));
     pieces.push(board::Piece::new('K', board::Loc { x: 0, y: 4 }));
     pieces.push(board::Piece::new('r', board::Loc { x: 7, y: 0 }));
     pieces.push(board::Piece::new('r', board::Loc { x: 7, y: 7 }));
-    /*pieces.push(board::Piece::new('n', board::Loc { x: 7, y: 1 }));
+    pieces.push(board::Piece::new('n', board::Loc { x: 7, y: 1 }));
     pieces.push(board::Piece::new('n', board::Loc { x: 7, y: 6 }));
     pieces.push(board::Piece::new('b', board::Loc { x: 7, y: 2 }));
-    pieces.push(board::Piece::new('b', board::Loc { x: 7, y: 5 }));*/
-
+    pieces.push(board::Piece::new('b', board::Loc { x: 7, y: 5 }));
     pieces.push(board::Piece::new('k', board::Loc { x: 7, y: 4 }));
-    //pieces.push(board::Piece::new('q', board::Loc { x: 1, y: 0 }));
+    pieces.push(board::Piece::new('q', board::Loc { x: 7, y: 3 }));
+
     for i in pieces.iter() {
         board.insert_piece(i.loc, i.piece);
     }
@@ -77,37 +77,47 @@ fn main() {
                 break;
             }
         }
-        println!("Any special move?, 1 for long castle, 2 for short castle, other number for normal move");
+        println!("Any special move?, 1 for long castle, 2 for short castle, 3 for surrender other number for normal move");
         let special = get_int();
+        //Special moves
         match special {
             1 => match lowercase_now {
                 true => {
-                    if board.long_castle_lowercase(&mut pieces) {
-                        lowercase_now = !lowercase_now;
+                    match board.long_castle_lowercase(&mut pieces) {
+                        true => lowercase_now = !lowercase_now,
+                        false => println!("Move is not possible"),
                     }
                     continue;
                 }
                 false => {
-                    if board.long_castle_uppercase(&mut pieces) {
-                        lowercase_now = !lowercase_now;
+                    match board.long_castle_uppercase(&mut pieces) {
+                        true => lowercase_now = !lowercase_now,
+                        false => println!("Move is not possible"),
                     }
                     continue;
                 }
             },
             2 => match lowercase_now {
                 true => {
-                    if board.short_castle_lowercase(&mut pieces) {
-                        lowercase_now = !lowercase_now;
+                    match board.short_castle_lowercase(&mut pieces) {
+                        true => lowercase_now = !lowercase_now,
+                        false => println!("Move is not possible"),
                     }
                     continue;
                 }
                 false => {
-                    if board.short_castle_uppercase(&mut pieces) {
-                        lowercase_now = !lowercase_now;
+                    match board.short_castle_uppercase(&mut pieces) {
+                        true => lowercase_now = !lowercase_now,
+                        false => println!("Move is not possible"),
                     }
                     continue;
                 }
             },
+            3 => {
+                println!("Player has surrended");
+                break;
+            }
+            //Normal moves
             _ => {
                 println!("Choose piece: ");
                 let loc = board::Loc {
@@ -125,10 +135,12 @@ fn main() {
                 match piece_index {
                     Some(x) => {
                         let mut piece = pieces[x];
+                        //Contiunue only when the piece is owned by current player (both are uppercase or both lowercase)
                         match piece.piece.is_ascii_lowercase() && lowercase_now
                             || piece.piece.is_ascii_uppercase() && !lowercase_now
                         {
                             true => {
+                                //Moves the piece by player and kicks piece from Vec on moved location if there is some piece in that location.
                                 board = user_move(board, &mut piece);
                                 let kick_piece =
                                     board::get_piece_from_loc(pieces.clone(), piece.loc);
@@ -152,10 +164,6 @@ fn main() {
             }
         }
     }
-    //loop {
-    //board = user_move(board, &mut queen);
-    //nice_print(board);
-    //}
 }
 
 //User move
