@@ -286,6 +286,8 @@ pub struct Piece {
     pub piece: char,
     pub loc: Loc,
     pub has_moved: bool,
+    pub en_passant: i32,
+    pub en_passant_was_made: bool,
 }
 
 impl Piece {
@@ -294,6 +296,8 @@ impl Piece {
             piece,
             loc,
             has_moved: false,
+            en_passant: 0,
+            en_passant_was_made: false,
         }
     }
     //Funtion removing current piece and adding a new one in desired location, so basically moving a piece.
@@ -308,6 +312,7 @@ impl Piece {
         self.loc.y = loc.y;
         self.has_moved = true;
     }
+
     //Function getting all posible moves including invalid ones
     pub fn get_possible_moves(self) -> Vec<Loc> {
         let mut moves: Vec<Loc> = Vec::new();
@@ -475,7 +480,10 @@ impl Piece {
                     continue;
                 }
                 //If piece is pawn removes moving by axis if there is no piece
-                if (moves[move_index].y != self.loc.y) && place == ' ' {
+                if (moves[move_index].y != self.loc.y)
+                    && place == ' '
+                    && moves[move_index].y != self.loc.y - self.en_passant
+                {
                     moves.remove(move_index);
                     comeback += 1;
                     continue;
