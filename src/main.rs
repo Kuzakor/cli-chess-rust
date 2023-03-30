@@ -163,7 +163,7 @@ fn main() {
                                     }
                                     let mut kick_piece =
                                         board::get_piece_from_loc(pieces.clone(), piece.loc);
-                                    /*if piece.en_passant_was_made {
+                                    if piece.en_passant_was_made {
                                         match piece.piece.is_ascii_lowercase() {
                                             true => {
                                                 kick_piece = board::get_piece_from_loc(
@@ -184,8 +184,9 @@ fn main() {
                                                 )
                                             }
                                         }
+                                        
                                         piece.en_passant = 0;
-                                    }*/
+                                    }
                                     println!("{:?}", kick_piece);
 
                                     match kick_piece {
@@ -285,19 +286,22 @@ fn user_move(
                         }
                     }
                 }
-                
-                
+
                 piece.move_piece(loc, &mut board);
-                
-                if piece.piece == 'p' && piece.en_passant != 0  && loc == (board::Loc {x: piece.loc.x -1, y: piece.loc.y - piece.en_passant}){
+
+                if piece.piece == 'p' && piece.en_passant != 0  && loc == piece.loc{
                     piece.en_passant_was_made = true;
                     board.remove_piece(board::Loc { x: piece.loc.x + 1, y: piece.loc.y });
                 }
-                if piece.piece == 'P' && piece.en_passant != 0  && loc == (board::Loc {x: piece.loc.x +1, y: piece.loc.y - piece.en_passant}){
+                if piece.piece == 'P' && piece.en_passant != 0  && loc == piece.loc{
                     piece.en_passant_was_made = true;
                     board.remove_piece(board::Loc { x: piece.loc.x + 1, y: piece.loc.y });
                 }
                 
+                
+                
+               
+                nice_print(board);
                 return Some(board);
             }
             false => {
