@@ -78,11 +78,12 @@ fn main() {
             }
         }
         loop {
-            println!("Any special move?, 10 for long castle, 20 for short castle, 30 for surrender or select row of the piece you want to select: ");
-            let special = get_int();
+            println!("Any special move?, 10 for long castle, 20 for short castle, 30 for surrender or select location of the piece");
+            //let special = get_int();
+            let special = get_String();
             //Special moves
-            match special {
-                10 => match lowercase_now {
+            match special.as_str() {
+                "10" => match lowercase_now {
                     true => {
                         match board.long_castle_lowercase(&mut pieces) {
                             true => lowercase_now = !lowercase_now,
@@ -98,7 +99,7 @@ fn main() {
                         continue;
                     }
                 },
-                20 => match lowercase_now {
+                "20" => match lowercase_now {
                     true => {
                         match board.short_castle_lowercase(&mut pieces) {
                             true => lowercase_now = !lowercase_now,
@@ -114,20 +115,15 @@ fn main() {
                         continue;
                     }
                 },
-                30 => {
+                "30" => {
                     println!("Player has surrended");
                     break;
                 }
                 //Normal moves
                 _ => {
-                    let loc = board::Loc {
-                        //Here what you normally expect to by x is y because its 2d array not a map nor other stuff
-                        x: special,
-                        y: {
-                            println!("collumn: ");
-                            get_int()
-                        },
-                    };
+
+                    let loc = convert_boardloc_to_Loc(special);
+                    println!("{:?}", loc);
                     let piece_index = board::get_piece_from_loc(pieces.clone(), loc);
                     match piece_index {
                         Some(x) => {
@@ -238,17 +234,11 @@ fn user_move(
             println!("No legal moves possible");
             return None;
         }
-        let loc = board::Loc {
-            //Here what you normally expect to by x is y because its 2d array not a map nor other stuff
-            x: {
-                println!("Select your move(row): ");
-                get_int()
-            },
-            y: {
-                println!("Select your move(collumn): ");
-                get_int()
-            },
+        let mov = {
+            println!("Insert move: ");
+            get_String()
         };
+        let loc = convert_boardloc_to_Loc(mov);
 
         match possible_moves.contains(&loc) {
             true => {
@@ -314,7 +304,7 @@ fn user_move(
 
 //Funtion prinint given Board in human-readable format
 fn nice_print(what: board::Board) {
-    println!("    0 1 2 3 4 5 6 7");
+    println!("    A B C D E F G H");
     for i in 0..8 {
         print!(" {} ", i);
         print!("|");
@@ -354,4 +344,31 @@ fn get_char() -> char {
     io::stdin().read_line(&mut num).expect("read error");
     let num: char = num.trim().parse().expect("convert error");
     num
+}
+
+fn get_String() -> String {
+    let mut num = String::new();
+    io::stdin().read_line(&mut num).expect("read error");
+    num
+}
+
+
+
+fn convert_boardloc_to_Loc(what: String) -> board::Loc {
+    let x = what.as_bytes()[1] as char;
+    println!("{:?}", x);
+    let x = x as u32 - '0' as u32;
+    board::Loc { x:x as i32 , y: {
+        match what.as_bytes()[0] as char {
+            'a' => 0,
+            'b' => 1,
+            'c' => 2,
+            'd' => 3,
+            'e' => 4,
+            'f' => 5,
+            'g' => 6,
+            'h' => 7,
+            _ => 8,
+        }
+    } }
 }
