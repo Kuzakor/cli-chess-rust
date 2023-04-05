@@ -314,9 +314,31 @@ fn user_move(
 
 //Funtion prinint given Board in human-readable format
 fn nice_print(what: board::Board) {
-    println!("    0    1    2    3    4    5    6    7");
+    println!("    0 1 2 3 4 5 6 7");
     for i in 0..8 {
-        println!("{} {:?}", i, what.layout[i])
+        print!(" {} ", i);
+        print!("|");
+        for a in 0..8 {
+            let print_char:&'static str;
+            match what.layout[i][a]{
+                'k' => print_char = "♚",
+                'K' => print_char = "♔",
+                'r' => print_char = "♜",
+                'R' => print_char = "♖",
+                'b' => print_char = "♝",
+                'B' => print_char = "♗",
+                'n' => print_char = "♞",
+                'N' => print_char = "♘",
+                'q' => print_char = "♛",
+                'Q' => print_char = "♕",
+                'p' => print_char = "♟︎",
+                'P' => print_char = "♙",
+                '*' => print_char = "*",
+                _ => print_char = " ",
+            }
+            print!("{}|", print_char);
+        }
+        println!();
     }
 }
 //Funtion getting i32 input from user
