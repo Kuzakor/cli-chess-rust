@@ -527,6 +527,8 @@ impl Piece {
                 }
             }
         }
+
+        //returns valid moves
         moves
     }
 

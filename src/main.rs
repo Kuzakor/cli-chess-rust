@@ -50,6 +50,7 @@ fn main() {
                     }
                 }
             }
+            //If there are no possible moves, its checkmate and ends the game.
             if valid_pieces == no_moves {
                 println!("its checkmate, white wins");
                 break;
@@ -72,6 +73,7 @@ fn main() {
                     }
                 }
             }
+
             if valid_pieces == no_moves {
                 println!("its checkmate, black wins");
                 break;
@@ -80,7 +82,7 @@ fn main() {
         loop {
             println!("Any special move?, 10 for long castle, 20 for short castle, 30 for surrender or select location of the piece");
             //let special = get_int();
-            let mut special = get_String();
+            let mut special = get_string();
             special.pop();
             //Special moves
             match special.as_str() {
@@ -130,7 +132,7 @@ fn main() {
                 //Normal moves
                 _ => {
                     //Converts human readable format to program readable format
-                    let loc = convert_boardloc_to_Loc(special);
+                    let loc = convert_boardloc_to_loc(special);
                     //Gets the index of the selected piece
                     let piece_index = board::get_piece_from_loc(pieces.clone(), loc);
                     match piece_index {
@@ -168,7 +170,7 @@ fn main() {
                                         }
                                     }
 
-                                    //Sets the kick_piece to a piece that was in the position the piece was moved to. 
+                                    //Sets the kick_piece to a piece that was in the position the piece was moved to.
                                     let mut kick_piece =
                                         board::get_piece_from_loc(pieces.clone(), piece.loc);
                                     //En passant is a bit diffrent so it selects the piece it should be, so the piece "behind" the moved piece
@@ -229,7 +231,7 @@ fn main() {
 fn user_move(
     mut board: board::Board,
     piece: &mut board::Piece,
-    pieces: &mut Vec<board::Piece>,
+    pieces: &mut [board::Piece],
 ) -> Option<board::Board> {
     println!(
         "You have chosen {} on location {:?}",
@@ -256,10 +258,10 @@ fn user_move(
         //Gets the move from player
         let mov = {
             println!("Insert move: ");
-            get_String()
+            get_string()
         };
         //Convets the move form human-readable format to program-readable format
-        let loc = convert_boardloc_to_Loc(mov);
+        let loc = convert_boardloc_to_loc(mov);
 
         match possible_moves.contains(&loc) {
             //If move is legal
@@ -268,48 +270,56 @@ fn user_move(
                 if piece.piece == 'P' && loc.x == piece.loc.x + 2 {
                     let offset = [1, -1];
                     for i in offset {
-                        let a = board::get_piece_from_loc(
-                            pieces.clone(),
+                        let sel_piece = board::get_piece_from_loc(
+                            pieces.to_owned(),
                             board::Loc {
                                 x: loc.x,
                                 y: loc.y + i,
                             },
                         );
-                        if a.is_some() && pieces[a.unwrap()].piece == 'p' {
-                            pieces[a.unwrap()].en_passant = i
+                        if let Some(piece_in) = sel_piece {
+                            if pieces[piece_in].piece == 'p' {
+                                pieces[piece_in].en_passant = i;
+                            }
                         }
                     }
                 }
                 if piece.piece == 'p' && loc.x == piece.loc.x - 2 {
                     let offset = [1, -1];
                     for i in offset {
-                        let a = board::get_piece_from_loc(
-                            pieces.clone(),
+                        let sel_piece = board::get_piece_from_loc(
+                            pieces.to_owned(),
                             board::Loc {
                                 x: loc.x,
                                 y: loc.y + i,
                             },
                         );
-                        if a.is_some() && pieces[a.unwrap()].piece == 'P' {
-                            pieces[a.unwrap()].en_passant = i;
+                        if let Some(piece_in) = sel_piece {
+                            if pieces[piece_in].piece == 'P' {
+                                pieces[piece_in].en_passant = i;
+                            }
                         }
                     }
                 }
                 //Moves the piece
                 piece.move_piece(loc, &mut board);
                 //If en passant was made, removes the kicked piece form board, 'cause en passant does not removes it automatically like other moves.
-                if piece.piece == 'p' && piece.en_passant != 0  && loc == piece.loc{
+                if piece.piece == 'p' && piece.en_passant != 0 && loc == piece.loc {
                     piece.en_passant_was_made = true;
-                    board.remove_piece(board::Loc { x: piece.loc.x + 1, y: piece.loc.y });
+                    board.remove_piece(board::Loc {
+                        x: piece.loc.x + 1,
+                        y: piece.loc.y,
+                    });
                 }
-                if piece.piece == 'P' && piece.en_passant != 0  && loc == piece.loc{
+                if piece.piece == 'P' && piece.en_passant != 0 && loc == piece.loc {
                     piece.en_passant_was_made = true;
-                    board.remove_piece(board::Loc { x: piece.loc.x + 1, y: piece.loc.y });
+                    board.remove_piece(board::Loc {
+                        x: piece.loc.x + 1,
+                        y: piece.loc.y,
+                    });
                 }
-                
-                
-                
-               //Prints and returns the board
+
+                //Prints and returns the board
                 nice_print(board);
                 return Some(board);
             }
@@ -329,35 +339,28 @@ fn nice_print(what: board::Board) {
         print!(" {} ", i);
         print!("|");
         for a in 0..8 {
-            let print_char:&'static str;
-            match what.layout[i][a]{
-                'k' => print_char = "♚",
-                'K' => print_char = "♔",
-                'r' => print_char = "♜",
-                'R' => print_char = "♖",
-                'b' => print_char = "♝",
-                'B' => print_char = "♗",
-                'n' => print_char = "♞",
-                'N' => print_char = "♘",
-                'q' => print_char = "♛",
-                'Q' => print_char = "♕",
-                'p' => print_char = "♟︎",
-                'P' => print_char = "♙",
-                '*' => print_char = "*",
-                _ => print_char = " ",
-            }
+            let print_char: &'static str = match what.layout[i][a] {
+                'k' => "♚",
+                'K' => "♔",
+                'r' => "♜",
+                'R' => "♖",
+                'b' => "♝",
+                'B' => "♗",
+                'n' => "♞",
+                'N' => "♘",
+                'q' => "♛",
+                'Q' => "♕",
+                'p' => "♟︎",
+                'P' => "♙",
+                '*' => "*",
+                _ => " ",
+            };
             print!("{}|", print_char);
         }
         println!();
     }
 }
-//Funtion getting i32 input from user
-fn get_int() -> i32 {
-    let mut num = String::new();
-    io::stdin().read_line(&mut num).expect("read error");
-    let num: i32 = num.trim().parse().expect("convert error");
-    num
-}
+//Funtions getting input from user
 
 fn get_char() -> char {
     let mut num = String::new();
@@ -366,27 +369,29 @@ fn get_char() -> char {
     num
 }
 
-fn get_String() -> String {
+fn get_string() -> String {
     let mut num = String::new();
     io::stdin().read_line(&mut num).expect("read error");
     num
 }
-
 //Converts human readable format to program readable format
-fn convert_boardloc_to_Loc(what: String) -> board::Loc {
+fn convert_boardloc_to_loc(what: String) -> board::Loc {
     let x = what.chars().nth(1).unwrap();
     let x = x as u32 - '0' as u32;
-    board::Loc { x:x as i32 , y: {
-        match what.as_bytes()[0] as char {
-            'a' => 0,
-            'b' => 1,
-            'c' => 2,
-            'd' => 3,
-            'e' => 4,
-            'f' => 5,
-            'g' => 6,
-            'h' => 7,
-            _ => 8,
-        }
-    } }
+    board::Loc {
+        x: x as i32,
+        y: {
+            match what.as_bytes()[0] as char {
+                'a' => 0,
+                'b' => 1,
+                'c' => 2,
+                'd' => 3,
+                'e' => 4,
+                'f' => 5,
+                'g' => 6,
+                'h' => 7,
+                _ => 8,
+            }
+        },
+    }
 }
