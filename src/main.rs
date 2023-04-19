@@ -80,15 +80,18 @@ fn main() {
         loop {
             println!("Any special move?, 10 for long castle, 20 for short castle, 30 for surrender or select location of the piece");
             //let special = get_int();
-            let special = get_String();
+            let mut special = get_String();
+            special.pop();
             //Special moves
             match special.as_str() {
+                //Long castle for the player depending whose move is now. If succefull, changes the move to second player and reruns the loop
                 "10" => match lowercase_now {
                     true => {
                         match board.long_castle_lowercase(&mut pieces) {
                             true => lowercase_now = !lowercase_now,
                             false => println!("Move is not possible"),
                         }
+                        nice_print(board);
                         continue;
                     }
                     false => {
@@ -96,15 +99,18 @@ fn main() {
                             true => lowercase_now = !lowercase_now,
                             false => println!("Move is not possible"),
                         }
+                        nice_print(board);
                         continue;
                     }
                 },
+                //Same but short castle
                 "20" => match lowercase_now {
                     true => {
                         match board.short_castle_lowercase(&mut pieces) {
                             true => lowercase_now = !lowercase_now,
                             false => println!("Move is not possible"),
                         }
+                        nice_print(board);
                         continue;
                     }
                     false => {
@@ -112,18 +118,20 @@ fn main() {
                             true => lowercase_now = !lowercase_now,
                             false => println!("Move is not possible"),
                         }
+                        nice_print(board);
                         continue;
                     }
                 },
+                //Player surrender
                 "30" => {
                     println!("Player has surrended");
                     break;
                 }
                 //Normal moves
                 _ => {
-
+                    //Converts human readable format to program readable format
                     let loc = convert_boardloc_to_Loc(special);
-                    println!("{:?}", loc);
+                    //Gets the index of the selected piece
                     let piece_index = board::get_piece_from_loc(pieces.clone(), loc);
                     match piece_index {
                         Some(x) => {
@@ -135,10 +143,12 @@ fn main() {
                                 true => {
                                     //Moves the piece by player and kicks piece from Vec on moved location if there is some piece in that location.
                                     let moved_board = user_move(board, &mut piece, &mut pieces);
+                                    //Changes the board if move was done correctly
                                     match moved_board {
                                         Some(x) => board = x,
                                         None => continue,
                                     }
+                                    //Pawn promotion
                                     if piece.piece == 'p' && piece.loc.x == 0 {
                                         pieces[x].piece = {
                                             println!("To what you want to promote: ");
@@ -157,8 +167,11 @@ fn main() {
                                             promotion
                                         }
                                     }
+
+                                    //Sets the kick_piece to a piece that was in the position the piece was moved to. 
                                     let mut kick_piece =
                                         board::get_piece_from_loc(pieces.clone(), piece.loc);
+                                    //En passant is a bit diffrent so it selects the piece it should be, so the piece "behind" the moved piece
                                     if piece.en_passant_was_made {
                                         match piece.piece.is_ascii_lowercase() {
                                             true => {
@@ -180,24 +193,27 @@ fn main() {
                                                 )
                                             }
                                         }
-                                        
+                                        //Resets en passant
                                         piece.en_passant = 0;
                                     }
-                                    println!("{:?}", kick_piece);
 
                                     match kick_piece {
+                                        //If piece was kicked, removes it from pieces vector. Always pushes the new piece to the array.
                                         Some(y) => {
                                             pieces.remove(y);
                                             pieces.push(piece);
                                         }
                                         None => pieces.push(piece),
                                     }
+                                    //Gives the move to second player
                                     lowercase_now = !lowercase_now;
                                     break;
                                 }
+                                //Informs player that she/he choose not their piece
                                 false => println!("Not your piece"),
                             }
                         }
+                        //Informs player that she/he choose an empty space.
                         None => {
                             println!("No piece there");
                             continue;
@@ -220,6 +236,7 @@ fn user_move(
         piece.piece, piece.loc
     );
     println!("Highlithing possible moves: ");
+    //Gets the possible moves, filter them and highlights.
     let unfiltered_moves = piece.get_possible_moves();
     let possible_moves = piece.filter_moves(unfiltered_moves, board);
 
@@ -228,20 +245,26 @@ fn user_move(
     nice_print(board_2);
 
     loop {
+        //Gets the possible moves
         let unfiltered_moves = piece.get_possible_moves();
         let possible_moves = piece.filter_moves(unfiltered_moves, board);
+        //Tells the player there is no moves possible
         if possible_moves.is_empty() {
             println!("No legal moves possible");
             return None;
         }
+        //Gets the move from player
         let mov = {
             println!("Insert move: ");
             get_String()
         };
+        //Convets the move form human-readable format to program-readable format
         let loc = convert_boardloc_to_Loc(mov);
 
         match possible_moves.contains(&loc) {
+            //If move is legal
             true => {
+                //En passant implementation
                 if piece.piece == 'P' && loc.x == piece.loc.x + 2 {
                     let offset = [1, -1];
                     for i in offset {
@@ -252,10 +275,8 @@ fn user_move(
                                 y: loc.y + i,
                             },
                         );
-                        if a != None {
-                            if pieces[a.unwrap()].piece == 'p' {
-                                pieces[a.unwrap()].en_passant = i
-                            }
+                        if a.is_some() && pieces[a.unwrap()].piece == 'p' {
+                            pieces[a.unwrap()].en_passant = i
                         }
                     }
                 }
@@ -269,16 +290,14 @@ fn user_move(
                                 y: loc.y + i,
                             },
                         );
-                        if a != None {
-                            if pieces[a.unwrap()].piece == 'P' {
-                                pieces[a.unwrap()].en_passant = i;
-                            }
+                        if a.is_some() && pieces[a.unwrap()].piece == 'P' {
+                            pieces[a.unwrap()].en_passant = i;
                         }
                     }
                 }
-
+                //Moves the piece
                 piece.move_piece(loc, &mut board);
-
+                //If en passant was made, removes the kicked piece form board, 'cause en passant does not removes it automatically like other moves.
                 if piece.piece == 'p' && piece.en_passant != 0  && loc == piece.loc{
                     piece.en_passant_was_made = true;
                     board.remove_piece(board::Loc { x: piece.loc.x + 1, y: piece.loc.y });
@@ -290,10 +309,11 @@ fn user_move(
                 
                 
                 
-               
+               //Prints and returns the board
                 nice_print(board);
                 return Some(board);
             }
+            //Player have choosen wrong location
             false => {
                 println!("You have chosen wrong location - try again");
                 continue;
@@ -352,11 +372,9 @@ fn get_String() -> String {
     num
 }
 
-
-
+//Converts human readable format to program readable format
 fn convert_boardloc_to_Loc(what: String) -> board::Loc {
-    let x = what.as_bytes()[1] as char;
-    println!("{:?}", x);
+    let x = what.chars().nth(1).unwrap();
     let x = x as u32 - '0' as u32;
     board::Loc { x:x as i32 , y: {
         match what.as_bytes()[0] as char {
